@@ -1,8 +1,8 @@
 CONFIG_NAME: 'DMGAN'
 
 DATASET_NAME: 'coco'
-DATA_DIR: '/home/hye/yh/text_to_image/data/coco'
-GPU_ID: 3
+DATA_DIR: '../data/coco'
+GPU_ID: 0
 WORKERS: 0
 
 B_VALIDATION: True
