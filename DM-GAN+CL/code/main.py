@@ -89,6 +89,7 @@ if __name__ == "__main__":
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
 
+    # copy parameters from args to cfg if they where given
     if args.gpu_id != -1:
         cfg.GPU_ID = args.gpu_id
     else:
@@ -99,6 +100,8 @@ if __name__ == "__main__":
 
     if args.data_dir != '':
         cfg.DATA_DIR = args.data_dir
+    
+    # output the used config parametes
     print('Using config:')
     pprint.pprint(cfg)
 
@@ -116,6 +119,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     print("Seed: %d" % (args.manualSeed))
 
+    # set datetime for name of output folder
     now = datetime.datetime.now(dateutil.tz.tzlocal())
     timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
     output_dir = '../output/%s_%s_%s' % \
@@ -144,7 +148,7 @@ if __name__ == "__main__":
     algo = trainer(output_dir, dataloader, dataset.n_words, dataset.ixtoword, dataset)
 
     start_t = time.time()
-    if cfg.TRAIN.FLAG:
+    if not cfg.TRAIN.FLAG:
         algo.train()
     else:
         '''generate images from pre-extracted embeddings'''
