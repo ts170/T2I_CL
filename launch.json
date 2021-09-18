@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Python: Aktuelle Datei",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "/content/T2I_CL/DM-GAN+CL/code",
+            "args": ["--cfg", "cfg/eval_coco.yml", "--gpu", "0"],
+        }
+    ]
+}
