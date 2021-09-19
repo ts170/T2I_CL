@@ -148,7 +148,7 @@ if __name__ == "__main__":
     algo = trainer(output_dir, dataloader, dataset.n_words, dataset.ixtoword, dataset)
 
     start_t = time.time()
-    if not cfg.TRAIN.FLAG:
+    if cfg.TRAIN.FLAG:
         algo.train()
     else:
         '''generate images from pre-extracted embeddings'''
