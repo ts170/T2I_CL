@@ -659,3 +659,9 @@ class condGANTrainer(object):
                                 im = Image.fromarray(img_set)
                                 fullpath = '%s_a%d.png' % (save_name, k)
                                 im.save(fullpath)
+
+class GANSampler(object):
+    """Object for sampling single captions"""
+    def __init__(self, output_dir, n_words, ixtoword, singlecaption):
+        self.image_dir = os.path.join(output_dir, 'Image')
+        mkdir_p(self.image_dir)
