@@ -587,12 +587,11 @@ class condGANTrainer(object):
             text_encoder = text_encoder.cuda()
             text_encoder.eval()
 
-            # the path to save generated images
             if cfg.GAN.B_DCGAN:
                 netG = G_DCGAN()
             else:
                 netG = G_NET()
-            s_tmp = cfg.TRAIN.NET_G[:cfg.TRAIN.NET_G.rfind('.pth')]
+            s_tmp = cfg.TRAIN.NET_G[:cfg.TRAIN.NET_G.rfind('.pth')] # the path to save generated images
             model_dir = cfg.TRAIN.NET_G
             state_dict = \
                 torch.load(model_dir, map_location=lambda storage, loc: storage)
@@ -600,8 +599,10 @@ class condGANTrainer(object):
             print('Load G from: ', model_dir)
             netG.cuda()
             netG.eval()
+
+            # 
             for key in data_dic:
-                save_dir = '%s/%s' % (s_tmp, key)
+                save_dir = '%s/%s' % (s_tmp, key) # maybe change to be in output directory?
                 mkdir_p(save_dir)
                 captions, cap_lens, sorted_indices = data_dic[key]
 
@@ -636,7 +637,7 @@ class condGANTrainer(object):
                             im = fake_imgs[k][j].data.cpu().numpy()
                             im = (im + 1.0) * 127.5
                             im = im.astype(np.uint8)
-                            # print('im', im.shape)
+                            #print('im', im.shape)
                             im = np.transpose(im, (1, 2, 0))
                             # print('im', im.shape)
                             im = Image.fromarray(im)
@@ -650,15 +651,15 @@ class condGANTrainer(object):
                                 im = fake_imgs[0].detach().cpu()
                             attn_maps = attention_maps[k]
                             att_sze = attn_maps.size(2)
-                            img_set, sentences = \
-                                build_super_images2(im[j].unsqueeze(0),
-                                                    captions[j].unsqueeze(0),
-                                                    [cap_lens_np[j]], self.ixtoword,
-                                                    [attn_maps[j]], att_sze)
-                            if img_set is not None:
-                                im = Image.fromarray(img_set)
-                                fullpath = '%s_a%d.png' % (save_name, k)
-                                im.save(fullpath)
+                            #img_set, sentences = \
+                            #    build_super_images2(im[j].unsqueeze(0),
+                            #                        captions[j].unsqueeze(0),
+                            #                        [cap_lens_np[j]], self.ixtoword,
+                            #                        [attn_maps[j]], att_sze)
+                            #if img_set is not None:
+                            #    im = Image.fromarray(img_set)
+                            #    fullpath = '%s_a%d.png' % (save_name, k)
+                            #    im.save(fullpath)
 
 # ############### Single caption sampling object ###################################
 class GANSampler(object):

@@ -50,6 +50,7 @@ def gen_example(wordtoix, algo):
                 print('Load from:', name)
                 # sentences = f.read().decode('utf8').split('\n')
                 sentences = f.read().split('\n')
+                
                 # a list of indices for a sentence
                 captions = []
                 cap_lens = []
@@ -68,7 +69,7 @@ def gen_example(wordtoix, algo):
                         t = t.encode('ascii', 'ignore').decode('ascii')
                         if len(t) > 0 and t in wordtoix:
                             rev.append(wordtoix[t])
-                    captions.append(rev)
+                    captions.append(rev) # captions contains index numbers from words in caption out of wordtoix
                     cap_lens.append(len(rev))
             max_len = np.max(cap_lens)
 
