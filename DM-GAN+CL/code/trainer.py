@@ -577,7 +577,7 @@ class condGANTrainer(object):
         if cfg.TRAIN.NET_G == '':
             print('Error: the path for morels is not found!')
         else:
-            # Build and load the generator
+            # Build and load the generator ant text encoder
             text_encoder = \
                 RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
             state_dict = \
