@@ -660,8 +660,73 @@ class condGANTrainer(object):
                                 fullpath = '%s_a%d.png' % (save_name, k)
                                 im.save(fullpath)
 
+# ############### Single caption sampling object ###################################
 class GANSampler(object):
     """Object for sampling single captions"""
     def __init__(self, output_dir, n_words, ixtoword, singlecaption):
         self.image_dir = os.path.join(output_dir, 'Image')
         mkdir_p(self.image_dir)
+        self.n_words = n_words
+        self.ixtoword = ixtoword
+        self.singlecaption = singlecaption
+
+    def save_singleimages(self, images, filenames, save_dir,
+                          split_dir, sentenceID=0):
+        for i in range(images.size(0)):
+            s_tmp = '%s/single_samples/%s/%s' %\
+                (save_dir, split_dir, filenames[i])
+            folder = s_tmp[:s_tmp.rfind('/')]
+            if not os.path.isdir(folder):
+                print('Make a new folder: ', folder)
+                mkdir_p(folder)
+
+            fullpath = '%s_%d.jpg' % (s_tmp, sentenceID)
+            # range from [-1, 1] to [0, 1]
+            # img = (images[i] + 1.0) / 2
+            img = images[i].add(1).div(2).mul(255).clamp(0, 255).byte()
+            # range from [0, 1] to [0, 255]
+            ndarr = img.permute(1, 2, 0).data.cpu().numpy()
+            im = Image.fromarray(ndarr)
+            im.save(fullpath)
+
+    def sampling(self, split_dir):
+        if cfg.TRAIN.NET_G == '':
+            print('Error: the path for morels is not found!')
+        else:
+            if split_dir == 'test':
+                split_dir = 'valid'
+            # Build and load the generator
+            if cfg.GAN.B_DCGAN:
+                netG = G_DCGAN()
+            else:
+                netG = G_NET()
+            netG.apply(weights_init)
+            netG.cuda()
+            netG.eval()
+
+            # load text encoder
+            text_encoder = RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
+            state_dict = torch.load(cfg.TRAIN.NET_E, map_location=lambda storage, loc: storage)
+            text_encoder.load_state_dict(state_dict)
+            print('Load text encoder from:', cfg.TRAIN.NET_E)
+            text_encoder = text_encoder.cuda()
+            text_encoder.eval()
+
+            batch_size = self.batch_size
+            nz = cfg.GAN.Z_DIM
+            noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
+            noise = noise.cuda()
+
+            model_dir = cfg.TRAIN.NET_G
+            state_dict = torch.load(model_dir, map_location=lambda storage, loc: storage)
+            # state_dict = torch.load(cfg.TRAIN.NET_G)
+            netG.load_state_dict(state_dict)
+            print('Load G from: ', model_dir)
+
+            # the path to save generated images
+            s_tmp = model_dir[:model_dir.rfind('.pth')]
+            save_dir = '%s/%s' % (s_tmp, split_dir)
+            mkdir_p(save_dir)
+
+            cnt = 0
+            cont = True
