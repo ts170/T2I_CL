@@ -608,14 +608,17 @@ class condGANTrainer(object):
 
                 batch_size = captions.shape[0]
                 nz = cfg.GAN.Z_DIM
-                captions = Variable(torch.from_numpy(captions), volatile=True)
-                cap_lens = Variable(torch.from_numpy(cap_lens), volatile=True)
+                with torch.no_grad():
+                    captions = Variable(torch.from_numpy(captions))
+                    cap_lens = Variable(torch.from_numpy(cap_lens))
 
-                captions = captions.cuda()
-                cap_lens = cap_lens.cuda()
+                    captions = captions.cuda()
+                    cap_lens = cap_lens.cuda()
+                
                 for i in range(1):  # 16
-                    noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
-                    noise = noise.cuda()
+                    with torch.no_grad():
+                        noise = Variable(torch.FloatTensor(batch_size, nz))
+                        noise = noise.cuda()
                     #######################################################
                     # (1) Extract text embeddings
                     ######################################################
@@ -651,6 +654,7 @@ class condGANTrainer(object):
                                 im = fake_imgs[0].detach().cpu()
                             attn_maps = attention_maps[k]
                             att_sze = attn_maps.size(2)
+                            # this is supposed to create an image with the caption but some errors ocure and it is uncecessary for my purpose
                             #img_set, sentences = \
                             #    build_super_images2(im[j].unsqueeze(0),
                             #                        captions[j].unsqueeze(0),
@@ -759,20 +763,3 @@ class GANSampler(object):
                             im = Image.fromarray(im)
                             fullpath = '%s_g%d.png' % (save_name, k)
                             im.save(fullpath)
-
-                        for k in range(len(attention_maps)):
-                            if len(fake_imgs) > 1:
-                                im = fake_imgs[k + 1].detach().cpu()
-                            else:
-                                im = fake_imgs[0].detach().cpu()
-                            attn_maps = attention_maps[k]
-                            att_sze = attn_maps.size(2)
-                            img_set, sentences = \
-                                build_super_images2(im[j].unsqueeze(0),
-                                                    captions[j].unsqueeze(0),
-                                                    [cap_lens_np[j]], self.ixtoword,
-                                                    [attn_maps[j]], att_sze)
-                            if img_set is not None:
-                                im = Image.fromarray(img_set)
-                                fullpath = '%s_a%d.png' % (save_name, k)
-                                im.save(fullpath)
