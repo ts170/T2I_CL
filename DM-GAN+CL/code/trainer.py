@@ -475,8 +475,9 @@ class condGANTrainer(object):
 
             batch_size = self.batch_size
             nz = cfg.GAN.Z_DIM
-            noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
-            noise = noise.cuda()
+            with torch.no_grad():
+                noise = Variable(torch.FloatTensor(batch_size, nz))
+                noise = noise.cuda()
 
             model_dir = cfg.TRAIN.NET_G
             state_dict = torch.load(model_dir, map_location=lambda storage, loc: storage)
