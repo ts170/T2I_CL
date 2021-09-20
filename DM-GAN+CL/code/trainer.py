@@ -654,6 +654,7 @@ class condGANTrainer(object):
                                 im = fake_imgs[0].detach().cpu()
                             attn_maps = attention_maps[k]
                             att_sze = attn_maps.size(2)
+                            
                             # this is supposed to create an image with the caption but some errors ocure and it is uncecessary for my purpose
                             #img_set, sentences = \
                             #    build_super_images2(im[j].unsqueeze(0),
@@ -664,102 +665,3 @@ class condGANTrainer(object):
                             #    im = Image.fromarray(img_set)
                             #    fullpath = '%s_a%d.png' % (save_name, k)
                             #    im.save(fullpath)
-
-# ############### Single caption sampling object ###################################
-class GANSampler(object):
-    """Object for sampling single captions"""
-    def __init__(self, output_dir, n_words, ixtoword, singlecaption):
-        self.image_dir = os.path.join(output_dir, 'Image')
-        mkdir_p(self.image_dir)
-        self.n_words = n_words
-        self.ixtoword = ixtoword
-        self.singlecaption = singlecaption
-
-    def save_singleimages(self, images, filenames, save_dir,
-                          split_dir, sentenceID=0):
-        for i in range(images.size(0)):
-            s_tmp = '%s/single_samples/%s/%s' %\
-                (save_dir, split_dir, filenames[i])
-            folder = s_tmp[:s_tmp.rfind('/')]
-            if not os.path.isdir(folder):
-                print('Make a new folder: ', folder)
-                mkdir_p(folder)
-
-            fullpath = '%s_%d.jpg' % (s_tmp, sentenceID)
-            # range from [-1, 1] to [0, 1]
-            # img = (images[i] + 1.0) / 2
-            img = images[i].add(1).div(2).mul(255).clamp(0, 255).byte()
-            # range from [0, 1] to [0, 255]
-            ndarr = img.permute(1, 2, 0).data.cpu().numpy()
-            im = Image.fromarray(ndarr)
-            im.save(fullpath)
-
-    def gen_example(self, data_dic):
-        if cfg.TRAIN.NET_G == '':
-            print('Error: the path for morels is not found!')
-        else:
-            # Build and load the generator
-            text_encoder = \
-                RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
-            state_dict = \
-                torch.load(cfg.TRAIN.NET_E, map_location=lambda storage, loc: storage)
-            text_encoder.load_state_dict(state_dict)
-            print('Load text encoder from:', cfg.TRAIN.NET_E)
-            text_encoder = text_encoder.cuda()
-            text_encoder.eval()
-
-            # the path to save generated images
-            if cfg.GAN.B_DCGAN:
-                netG = G_DCGAN()
-            else:
-                netG = G_NET()
-            s_tmp = cfg.TRAIN.NET_G[:cfg.TRAIN.NET_G.rfind('.pth')]
-            model_dir = cfg.TRAIN.NET_G
-            state_dict = \
-                torch.load(model_dir, map_location=lambda storage, loc: storage)
-            netG.load_state_dict(state_dict)
-            print('Load G from: ', model_dir)
-            netG.cuda()
-            netG.eval()
-            for key in data_dic:
-                save_dir = '%s/%s' % (s_tmp, key)
-                mkdir_p(save_dir)
-                captions, cap_lens, sorted_indices = data_dic[key]
-
-                batch_size = captions.shape[0]
-                nz = cfg.GAN.Z_DIM
-                captions = Variable(torch.from_numpy(captions), volatile=True)
-                cap_lens = Variable(torch.from_numpy(cap_lens), volatile=True)
-
-                captions = captions.cuda()
-                cap_lens = cap_lens.cuda()
-                for i in range(1):  # 16
-                    noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
-                    noise = noise.cuda()
-                    #######################################################
-                    # (1) Extract text embeddings
-                    ######################################################
-                    hidden = text_encoder.init_hidden(batch_size)
-                    # words_embs: batch_size x nef x seq_len
-                    # sent_emb: batch_size x nef
-                    words_embs, sent_emb = text_encoder(captions, cap_lens, hidden)
-                    mask = (captions == 0)
-                    #######################################################
-                    # (2) Generate fake images
-                    ######################################################
-                    noise.data.normal_(0, 1)
-                    fake_imgs, attention_maps, _, _ = netG(noise, sent_emb, words_embs, mask, cap_lens)
-                    # G attention
-                    cap_lens_np = cap_lens.cpu().data.numpy()
-                    for j in range(batch_size):
-                        save_name = '%s/%d_s_%d' % (save_dir, i, sorted_indices[j])
-                        for k in range(len(fake_imgs)):
-                            im = fake_imgs[k][j].data.cpu().numpy()
-                            im = (im + 1.0) * 127.5
-                            im = im.astype(np.uint8)
-                            # print('im', im.shape)
-                            im = np.transpose(im, (1, 2, 0))
-                            # print('im', im.shape)
-                            im = Image.fromarray(im)
-                            fullpath = '%s_g%d.png' % (save_name, k)
-                            im.save(fullpath)
