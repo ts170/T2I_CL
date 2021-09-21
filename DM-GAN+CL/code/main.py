@@ -123,6 +123,7 @@ if __name__ == "__main__":
     # set datetime for name of output folder
     now = datetime.datetime.now(dateutil.tz.tzlocal())
     timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
+    # with colab change output directory to be on drive. Otherwise all process is gone with end of runtime
     output_dir = '/content/drive/MyDrive/T2I_CL/DM-GAN/output/%s_%s_%s' % \
         (cfg.DATASET_NAME, cfg.CONFIG_NAME, timestamp)
 
