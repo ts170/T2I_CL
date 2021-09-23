@@ -4,7 +4,6 @@
 CONFIG_NAME: 'sample_images'
 
 DATASET_NAME: 'sample'
-SAMPLE_CAPTION: 'two people sitting on a bench' # trying to add a new parameter for single caption sampling
 # DATA_DIR: '../data/coco'
 GPU_ID: 0
 WORKERS: 0
@@ -18,7 +17,7 @@ TREE:
 TRAIN:
     FLAG: False
     NET_G: '../models/netG_epoch_200.pth' # pretrained Generator
-    B_NET_D: False # Bild discriminator (true is default)
+    B_NET_D: False # build discriminator (true is default)
     # BATCH_SIZE: 5
     NET_E: '../DAMSMencoders/coco/text_encoder100.pth' # pretrained DAMSM Text Encoder
 
