@@ -239,7 +239,7 @@ def build_models():
     labels = Variable(torch.LongTensor(range(batch_size)))
     start_epoch = 0
     if cfg.TRAIN.NET_E != '':
-        state_dict = torch.load(cfg.TRAIN.NET_E)
+        state_dict = torch.load(cfg.TRAIN.NET_E,map_location='cuda:0')       
         text_encoder.load_state_dict(state_dict)
         print('Load ', cfg.TRAIN.NET_E)
         #
