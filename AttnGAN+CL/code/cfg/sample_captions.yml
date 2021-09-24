@@ -1,11 +1,11 @@
 CONFIG_NAME: 'attn2'
 
 DATASET_NAME: 'coco'
-DATA_DIR: 'T2I_CL/DM-GAN+CL/data/coco' # data is only loaded once in DM-GAN+CL folder
+DATA_DIR: '/content/T2I_CL/DM-GAN+CL/data/coco' # data is only loaded once in DM-GAN+CL folder
 GPU_ID: 3
 WORKERS: 1
 
-B_VALIDATION: True 
+B_VALIDATION: False # get to gen_example in main.py line 146 
 TREE:
     BRANCH_NUM: 3
 
