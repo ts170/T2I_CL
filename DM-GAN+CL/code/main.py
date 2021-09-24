@@ -40,14 +40,15 @@ def gen_example(wordtoix, algo):
     filepath = '%s/example_filenames.txt' % (cfg.DATA_DIR)
     data_dic = {}
     with open(filepath, "r") as f:
-        filenames = f.read().decode('utf8').split('\n')
+        filenames = f.read().split('\n')
         for name in filenames:
             if len(name) == 0:
                 continue
             filepath = '%s/%s.txt' % (cfg.DATA_DIR, name)
             with open(filepath, "r") as f:
                 print('Load from:', name)
-                sentences = f.read().decode('utf8').split('\n')
+                sentences = f.read().split('\n')
+                
                 # a list of indices for a sentence
                 captions = []
                 cap_lens = []
@@ -66,7 +67,7 @@ def gen_example(wordtoix, algo):
                         t = t.encode('ascii', 'ignore').decode('ascii')
                         if len(t) > 0 and t in wordtoix:
                             rev.append(wordtoix[t])
-                    captions.append(rev)
+                    captions.append(rev) # captions contains index numbers from words in caption out of wordtoix
                     cap_lens.append(len(rev))
             max_len = np.max(cap_lens)
 
@@ -89,6 +90,7 @@ if __name__ == "__main__":
     if args.cfg_file is not None:
         cfg_from_file(args.cfg_file)
 
+    # copy parameters from args to cfg if they where given
     if args.gpu_id != -1:
         cfg.GPU_ID = args.gpu_id
     else:
@@ -99,6 +101,8 @@ if __name__ == "__main__":
 
     if args.data_dir != '':
         cfg.DATA_DIR = args.data_dir
+    
+    # output the used config parametes
     print('Using config:')
     pprint.pprint(cfg)
 
@@ -116,9 +120,11 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = True
     print("Seed: %d" % (args.manualSeed))
 
+    # set datetime for name of output folder
     now = datetime.datetime.now(dateutil.tz.tzlocal())
     timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
-    output_dir = '../output/%s_%s_%s' % \
+    # with colab change output directory to be on drive. Otherwise all process is gone with end of runtime
+    output_dir = '/content/drive/MyDrive/T2I_CL/DM-GAN/output/%s_%s_%s' % \
         (cfg.DATASET_NAME, cfg.CONFIG_NAME, timestamp)
 
     split_dir, bshuffle = 'train', True
@@ -129,7 +135,7 @@ if __name__ == "__main__":
     # Get data loader
     imsize = cfg.TREE.BASE_SIZE * (2 ** (cfg.TREE.BRANCH_NUM - 1))
     image_transform = transforms.Compose([
-        transforms.Scale(int(imsize * 76 / 64)),
+        transforms.Resize(int(imsize * 76 / 64)),
         transforms.RandomCrop(imsize),
         transforms.RandomHorizontalFlip()])
     dataset = TextDataset(cfg.DATA_DIR, split_dir,

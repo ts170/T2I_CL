@@ -1,0 +1,34 @@
+# content of this config file gets merched with default values defined in config.py in __C object
+# default values in __C are overwritten by values defined here
+
+CONFIG_NAME: 'sample_images'
+
+DATASET_NAME: 'sample'
+# DATA_DIR: '../data/coco'
+GPU_ID: 0
+WORKERS: 0
+
+B_VALIDATION: True # default is False
+TREE:
+    BRANCH_NUM: 3
+    BASE_SIZE: 64
+
+
+TRAIN:
+    FLAG: False
+    NET_G: '../models/netG_epoch_200.pth' # pretrained Generator
+    B_NET_D: False # build discriminator (true is default)
+    # BATCH_SIZE: 5
+    NET_E: '../DAMSMencoders/coco/text_encoder100.pth' # pretrained DAMSM Text Encoder
+
+
+GAN:
+    DF_DIM: 32
+    GF_DIM: 64
+    Z_DIM: 100
+    R_NUM: 3
+
+TEXT:
+    CAPTIONS_PER_IMAGE: 1
+    EMBEDDING_DIM: 256
+    WORDS_NUM: 20

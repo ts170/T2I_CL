@@ -475,8 +475,9 @@ class condGANTrainer(object):
 
             batch_size = self.batch_size
             nz = cfg.GAN.Z_DIM
-            noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
-            noise = noise.cuda()
+            with torch.no_grad():
+                noise = Variable(torch.FloatTensor(batch_size, nz))
+                noise = noise.cuda()
 
             model_dir = cfg.TRAIN.NET_G
             state_dict = torch.load(model_dir, map_location=lambda storage, loc: storage)
@@ -577,7 +578,7 @@ class condGANTrainer(object):
         if cfg.TRAIN.NET_G == '':
             print('Error: the path for morels is not found!')
         else:
-            # Build and load the generator
+            # Build and load the generator ant text encoder
             text_encoder = \
                 RNN_ENCODER(self.n_words, nhidden=cfg.TEXT.EMBEDDING_DIM)
             state_dict = \
@@ -587,12 +588,11 @@ class condGANTrainer(object):
             text_encoder = text_encoder.cuda()
             text_encoder.eval()
 
-            # the path to save generated images
             if cfg.GAN.B_DCGAN:
                 netG = G_DCGAN()
             else:
                 netG = G_NET()
-            s_tmp = cfg.TRAIN.NET_G[:cfg.TRAIN.NET_G.rfind('.pth')]
+            s_tmp = cfg.TRAIN.NET_G[:cfg.TRAIN.NET_G.rfind('.pth')] # the path to save generated images
             model_dir = cfg.TRAIN.NET_G
             state_dict = \
                 torch.load(model_dir, map_location=lambda storage, loc: storage)
@@ -600,21 +600,26 @@ class condGANTrainer(object):
             print('Load G from: ', model_dir)
             netG.cuda()
             netG.eval()
+
+            # 
             for key in data_dic:
-                save_dir = '%s/%s' % (s_tmp, key)
+                save_dir = '%s/%s' % (s_tmp, key) # maybe change to be in output directory?
                 mkdir_p(save_dir)
                 captions, cap_lens, sorted_indices = data_dic[key]
 
                 batch_size = captions.shape[0]
                 nz = cfg.GAN.Z_DIM
-                captions = Variable(torch.from_numpy(captions), volatile=True)
-                cap_lens = Variable(torch.from_numpy(cap_lens), volatile=True)
+                with torch.no_grad():
+                    captions = Variable(torch.from_numpy(captions))
+                    cap_lens = Variable(torch.from_numpy(cap_lens))
 
-                captions = captions.cuda()
-                cap_lens = cap_lens.cuda()
+                    captions = captions.cuda()
+                    cap_lens = cap_lens.cuda()
+                
                 for i in range(1):  # 16
-                    noise = Variable(torch.FloatTensor(batch_size, nz), volatile=True)
-                    noise = noise.cuda()
+                    with torch.no_grad():
+                        noise = Variable(torch.FloatTensor(batch_size, nz))
+                        noise = noise.cuda()
                     #######################################################
                     # (1) Extract text embeddings
                     ######################################################
@@ -636,7 +641,7 @@ class condGANTrainer(object):
                             im = fake_imgs[k][j].data.cpu().numpy()
                             im = (im + 1.0) * 127.5
                             im = im.astype(np.uint8)
-                            # print('im', im.shape)
+                            #print('im', im.shape)
                             im = np.transpose(im, (1, 2, 0))
                             # print('im', im.shape)
                             im = Image.fromarray(im)
@@ -650,12 +655,14 @@ class condGANTrainer(object):
                                 im = fake_imgs[0].detach().cpu()
                             attn_maps = attention_maps[k]
                             att_sze = attn_maps.size(2)
-                            img_set, sentences = \
-                                build_super_images2(im[j].unsqueeze(0),
-                                                    captions[j].unsqueeze(0),
-                                                    [cap_lens_np[j]], self.ixtoword,
-                                                    [attn_maps[j]], att_sze)
-                            if img_set is not None:
-                                im = Image.fromarray(img_set)
-                                fullpath = '%s_a%d.png' % (save_name, k)
-                                im.save(fullpath)
+                            
+                            # this is supposed to create an image with the caption but some errors ocure and it is uncecessary for my purpose
+                            #img_set, sentences = \
+                            #    build_super_images2(im[j].unsqueeze(0),
+                            #                        captions[j].unsqueeze(0),
+                            #                        [cap_lens_np[j]], self.ixtoword,
+                            #                        [attn_maps[j]], att_sze)
+                            #if img_set is not None:
+                            #    im = Image.fromarray(img_set)
+                            #    fullpath = '%s_a%d.png' % (save_name, k)
+                            #    im.save(fullpath)

@@ -32,7 +32,8 @@ def drawCaption(convas, captions, ixtoword, vis_size, off1=2, off2=2):
     img_txt = Image.fromarray(convas)
     # get a font
     # fnt = None  # ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', 50)
-    fnt = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', 50)
+    # fnt = ImageFont.truetype('Pillow/Tests/fonts/FreeMono.ttf', 50)
+    fnt = ImageFont.load_default()
     # get a drawing context
     d = ImageDraw.Draw(img_txt)
     sentence_list = []
@@ -144,12 +145,12 @@ def build_super_images(real_imgs, captions, ixtoword,
                 one_map *= 255
                 #
                 PIL_im = Image.fromarray(np.uint8(img))
-                PIL_att = Image.fromarray(np.uint8(one_map))
+                #PIL_att = Image.fromarray(np.uint8(one_map))
                 merged = \
                     Image.new('RGBA', (vis_size, vis_size), (0, 0, 0, 0))
                 mask = Image.new('L', (vis_size, vis_size), (210))
                 merged.paste(PIL_im, (0, 0))
-                merged.paste(PIL_att, (0, 0), mask)
+                #merged.paste(PIL_att, (0, 0), mask)
                 merged = np.array(merged)[:, :, :3]
             else:
                 one_map = post_pad
@@ -240,15 +241,15 @@ def build_super_images2(real_imgs, captions, cap_lens, ixtoword,
             one_map *= 255
             #
             PIL_im = Image.fromarray(np.uint8(img))
-            PIL_att = Image.fromarray(np.uint8(one_map))
+            # PIL_att = Image.fromarray(np.uint8(one_map))
             merged = \
                 Image.new('RGBA', (vis_size, vis_size), (0, 0, 0, 0))
             mask = Image.new('L', (vis_size, vis_size), (180))  # (210)
             merged.paste(PIL_im, (0, 0))
-            merged.paste(PIL_att, (0, 0), mask)
+            # merged.paste(PIL_att, (0, 0), mask)
             merged = np.array(merged)[:, :, :3]
 
-            row.append(np.concatenate([one_map, middle_pad], 1))
+            #row.append(np.concatenate([one_map, middle_pad], 1))
             #
             row_merge.append(np.concatenate([merged, middle_pad], 1))
             #
